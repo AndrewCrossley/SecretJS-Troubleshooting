@@ -1,37 +1,70 @@
-// Various failed SecretNetworkClient implementation attempts:
-
-//const { SecretNetworkClient } = require("secretjs");
-//const { SecretNetworkClient } = require("./node_modules/secretjs/dist/index");
-//const { SecretNetworkClient } = require("./node_modules/secretjs/dist/secret_network_client.js");
-//import { SecretNetworkClient } from "./node_modules/secretjs/dist/index.js";
-//import { SecretNetworkClient } from "./node_modules/secretjs/dist/secret_network_client.js";
-import { SecretNetworkClient } from "secretjs";
+const { SecretNetworkClient } = require("secretjs");
 
 const contract = "secret1kqsmaakeas3ns2cjrqd5yuxjse7n93elted7pj";
+const contractHash = "0xab7aadde70fed716abd093b25839f2a56a6c46b8511f8b7b8199328b91f92c44";
 
 const secretjs = new SecretNetworkClient({
-    url: "http://localhost:1317"
+    url: "http://localhost:1317",
+    chainId: "secretdev-1"
 });
 
-document.getElementById("hello").innerHTML = "Hello World, from JavaScript!";
+document.getElementById("hello").innerHTML = "SecretJS!";
 
 const queryButton = document.getElementById("queryContract");
 const keplrButton = document.getElementById("openKeplr");
+const queryOutput = document.getElementById("output");
 
-queryButton.addEventListener("click", async () => {
-    try {
-        const query = await secretjs.query.compute.queryContract({
-            contract_address: contract,
-            query: '{"get_sellers": ()}',
-        });
-        console.log("Query results: ", query);
-    }
+///Get this error at the last line of this function: "Uncaught (in promise) {code: 12, message: 'Not Implemented', details: Array(0)}"
+queryButton.addEventListener("click", async function (event) {
+    event.preventDefault();
+    //// This works... from SecretJS-Templates/1_connecting_to_node
+    //const latestBlock = await secretjs.query.tendermint.getLatestBlock({});
+    //console.log("ChainId:", latestBlock.block.header.chain_id);
+    //console.log("Block height:", latestBlock.block.header.height);
+    //console.log("Successfully connected to Secret Network");
 
-    catch (error) {
-        console.log("Error: ", error);
-    }
+    //// Adding the code here from query.js from the 3rd tutorial SecretJS-Templates/3_query_node also works.
+
+    //// For testing purposes, why does this give a 501?:
+    const q = await secretjs.query.compute.contractInfo({ contract_address: "secret1kqsmaakeas3ns2cjrqd5yuxjse7n93elted7pj" });
+    queryOutput.innerHTML = JSON.stringify(q.contract_address);
+
+    ////What I'd like to have run, but also gives a 501 Not Implemented error:
+
+    //const query = await secretjs.query.compute.queryContract({
+    //    contract_address: contract,
+    //    code_hash: contractHash,
+    //    query: { get_sellers: {} },
+    //}).catch((error) => {
+    //    console.log("Error in queryContract():", error.message);
+    //    throw error; // re-throw the error to propagate it to the next catch block
+    //});
+
+    //query.then((result) => {
+    //    console.log("Query results: ", result);
+    //    queryOutput.innerHTML = JSON.stringify(result);
+    //}).catch((error) => {
+    //    console.log("Error in query promise: ", error.message);
+    //    queryOutput.innerHTML = "Error: " + error.message;
+    //});
 });
 
+//    try {
+//        const query = secretjs.query.compute.queryContract({ //may need "await" after the equals sign.
+//            contract_address: contract,
+//            query: '{"get_sellers": ()}',
+//        });
+//        console.log("Query results: ", query);
+//        queryOutput.innerHTML = JSON.stringify(query);
+//    }
+//
+//    catch (error) {
+//        console.log("Error: ", error);
+//        queryOutput.innerHTML = "Error: " + error.message;
+//    }
+
+
+///ingored for now.
 keplrButton.addEventListener("click", async () => {
     if (window.keplr) {
         await window.keplr.experimentalSuggestChain({
